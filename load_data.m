@@ -57,20 +57,6 @@ grid on
 hold on
 axis equal
 
-
- 
-
-%% 5) Filtering and Differentiation of yaw rate
-
-omega_z_f = smoothdata(omega_z, ...
-    "loess","SmoothingFactor",0.25);
-
-d_omega_z_f = zeros(n,1);
-for i=1:n-1
-    d_omega_z_f(i) =  ( omega_z_f(i+1) - omega_z_f(i) ) / dt;
-end
-d_omega_z_f(n) = d_omega_z_f(n-1);
-
 %% 4) Reconstruction of the trajectory of center of mass 
 
 % By center of velocity
@@ -100,23 +86,9 @@ for i=1:n-1
     v2(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
 
     v(i) = 0.5*( v1(i) + v2(i) );
-    
 
-    % beta(i) = atan2(v(i), u(i));
-    % 
-    % if  ( beta(i) > beta1(i) ) || ( beta(i) < beta2(i) )
-    %     beta(i) = 0.5*( beta1(i) + beta2(i) );
-    %     k = k+1;
-    % end
-    % 
-    % Finding xg yg
-    % u_ = speed(i)*cos(beta(i));
-    % v_ = speed(i)*sin(beta(i));
-
-    % speed_s(i) = sqrt( u_^2 + v_^2); 
-
-    xg_f(i+1) = xg_f(i) + (  speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
-    yg_f(i+1) = yg_f(i) + ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
+    xg_f(i+1) = xg_f(i) - ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
+    yg_f(i+1) = yg_f(i) - ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
 
     yaw(i+1) = yaw(i) + 1/2*( omega_z(i+1) + omega_z(i) )*dt;
     yaw(i+1) = atan2( sin( yaw(i+1) ), cos( yaw(i+1) ) );
@@ -133,8 +105,8 @@ for i=n:-1:2
 
     v(i) = 0.5*( v1(i) + v2(i) );
 
-    xg_i(i-1) = xg_i(i) - ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
-    yg_i(i-1) = yg_i(i) - ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
+    xg_i(i-1) = xg_i(i) + ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
+    yg_i(i-1) = yg_i(i) + ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
 
     yaw(i-1) = yaw(i) - ( omega_z(i) )*dt;
     yaw(i-1) = atan2( sin( yaw(i-1) ), cos( yaw(i-1) ) );
@@ -149,5 +121,14 @@ wi = linspace(0,1,n)';
 xg = wf.*xg_f + wi.*xg_i;
 yg = wf.*yg_f + wi.*yg_i;
 
-x = -xg;
-y = -yg;
+%% 5) Filtering and Differentiation of yaw rate
+
+omega_z_f = smoothdata(omega_z, ...
+    "loess","SmoothingFactor",0.25);
+
+d_omega_z_f = zeros(n,1);
+for i=1:n-1
+    d_omega_z_f(i) =  ( omega_z_f(i+1) - omega_z_f(i) ) / dt;
+end
+d_omega_z_f(n) = d_omega_z_f(n-1);
+
