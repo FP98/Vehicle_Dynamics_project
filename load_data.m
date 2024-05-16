@@ -21,19 +21,19 @@ sideslip_rear =  num_data(:,8);         % [sideslip_rear] = deg
 omega_z = num_data(:,9);                % [omega_z_vettura] = deg/s 
 massa_vettura = num_data(:,10);         % [massa_vettura] =
 farf = num_data(:,11);
-steer = num_data(:,12);
+steer = num_data(:,12);                 % [steer] = deg
 p_brake = num_data(:,13);
 carreggiata_front = num_data(:,14);
 carreggiata_rear = num_data(:,15);
 weight_dist = num_data(:,16);
-Jxx = num_data(:,17);
-Jyy = num_data(:,18);
-Jzz = num_data(:,19);
-Jzx = num_data(:,20);
-passo_vettura = num_data(:,21);
+Jxx = num_data(:,17);                   % [Jxx] = kg*m^2
+Jyy = num_data(:,18);                   % [Jyy] = kg*m^2
+Jzz = num_data(:,19);                   % [Jzz] = kg*m^2
+Jzx = num_data(:,20);                   % [Jzx] = kg*m^2
+passo_vettura = num_data(:,21);         % [passo_vettura] = m
 cz_front = num_data(:,22);
 cz_rear = num_data(:,23);
-air_dens = num_data(:,24);
+air_dens = num_data(:,24);              % [air_dens] = kg/m^3
 cx_tot = num_data(:,25);
 
 dt = time(2) - time(1);
@@ -233,5 +233,47 @@ ylabel("[rad/s^2]")
 grid on
 hold off
 
-%% Aerodynamic loads estimations
+%% Aerodynamic loads estimation
+ro = air_dens(1);
+Xa = zeros(n,1);
+Za1 = zeros(n,1);
+Za2 = zeros(n,1);
+
+for i=1:n
+    Xa(i) = 0.5*ro*airspeed(i)^2*cx_tot(i);
+    Za1(i) = 0.5*ro*airspeed(i)^2*cz_front(i);
+    Za2(i) = 0.5*ro*airspeed(i)^2*cz_rear(i);
+end
+
+% Plotting aerodynamics forces
+figure
+title("Aerodinamics forces");
+% Drag force (Xa)
+subplot(1,3,1)
+plot(time, Xa, 'b')
+title("Drag force (X_a)")
+xlabel("[s]")
+ylabel("[N]")
+grid on
+hold off
+% Front down force (Za1)
+subplot(1,3,2)
+plot(time, Za1, 'b')
+title("Front down force (Z_a_1)")
+xlabel("[s]")
+ylabel("[N]")
+grid on
+hold off
+% Rear down force (Za2)
+subplot(1,3,3)
+plot(time, Za2, 'b')
+title("Rear down force (Z_a_2)")
+xlabel("[s]")
+ylabel("[N]")
+grid on
+hold off
+
+
+
+
 
