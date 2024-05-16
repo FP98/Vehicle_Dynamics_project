@@ -1,5 +1,5 @@
 % Vehicle Dynamics project
-clear all
+clear 
 close all
 clc
 
@@ -64,10 +64,10 @@ xlabel("[s]")
 ylabel("[m/s]")
 grid on
 hold off
-% Relative speed of the air flow 
+% Relative speed of the air flow (Va)
 subplot(1,2,2)
 plot(time, airspeed, 'b')
-title("Relative speed of the airflow")
+title("Relative speed of the airflow (V_a)")
 xlabel("[s]")
 ylabel("[m/s]")
 grid on
