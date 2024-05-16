@@ -44,11 +44,11 @@ speed = speed * 1e3/3600;
 airspeed = airspeed * 1e3/3600;
 ax = ax * g;
 ay = ay * g;
-omega_z = - omega_z * pi/180;
+omega_z = omega_z * pi/180;
 
-sideslip_front = - sideslip_front*pi/180;
-sideslip_rear =  - sideslip_rear*pi/180;
-steer = - steer*pi/180;
+sideslip_front = sideslip_front*pi/180;
+sideslip_rear = sideslip_rear*pi/180;
+steer = steer*pi/180;
 
 n = size(time,1);
 
@@ -115,7 +115,7 @@ for i=1:n-1
 
     % speed_s(i) = sqrt( u_^2 + v_^2); 
 
-    xg_f(i+1) = xg_f(i) + (  speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
+    xg_f(i+1) = xg_f(i) + ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
     yg_f(i+1) = yg_f(i) + ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
 
     yaw(i+1) = yaw(i) + 1/2*( omega_z(i+1) + omega_z(i) )*dt;
@@ -133,7 +133,7 @@ for i=n:-1:2
 
     v(i) = 0.5*( v1(i) + v2(i) );
 
-    xg_i(i-1) = xg_i(i) - ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
+    xg_i(i-1) = xg_i(i) - ( - speed(i)*cos( yaw(i) ) + v(i)*sin( yaw(i) ) )*dt;
     yg_i(i-1) = yg_i(i) - ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
 
     yaw(i-1) = yaw(i) - ( omega_z(i) )*dt;
@@ -149,5 +149,3 @@ wi = linspace(0,1,n)';
 xg = wf.*xg_f + wi.*xg_i;
 yg = wf.*yg_f + wi.*yg_i;
 
-x = -xg;
-y = -yg;
