@@ -128,8 +128,8 @@ n = size(time,1);
 
 beta1 = sideslip_front;
 beta2 = sideslip_rear;
-a1 = weight_dist(1)*passo_vettura(1);        % semipasso anteriore
-a2 = passo_vettura(1) - a1;                   % semipasso posteriore
+a2 = weight_dist(1)*passo_vettura(1);        % semipasso anteriore
+a1 = passo_vettura(1) - a2;                   % semipasso posteriore
 yaw = zeros(n,1);
 beta = zeros(n,1);
 
@@ -273,6 +273,7 @@ ylabel("[N]")
 grid on
 hold off
 
+%% Physical grip estimation
 
 
 
