@@ -144,7 +144,7 @@ dist_s = 0;
 
 xg_f = zeros(n,1);
 yg_f = zeros(n,1);
-k = 0;
+
 for i=1:n-1
 
     % Computing v u beta
@@ -275,6 +275,150 @@ hold off
 
 %% Physical grip estimation
 
+% Searching the minimum ax
+ax_min = 0;                     % minimum longitudinal acceleration
+n_min = 0;                      % sample to wich we have ax_min
+for i=1:n
+    if ax(i) < ax_min
+        ax_min = ax(i);
+        n_min = i;
+    end
+end
+
+% Grip estimation (mu)
+mu = ( abs(ax_min) - ( Xa(n_min)/massa_vettura(n_min) ) ) / ( g + ( Za1(n_min) + Za2(n_min) )/massa_vettura(n_min) );
+
+%% Evalueting lateral forces Y1 Y2
+
+% Using single track model
+Y1 = zeros(n,1);
+Y2 = zeros(n,1);
+
+for i = 1:n
+    Y1(i) = ( d_omega_z_f(i)*Jzz(1) + massa_vettura(i)*ay(i) ) / passo_vettura(1);
+    Y2(i) = massa_vettura(i)*ay(i) - Y1(i);
+end
+
+% Plotting lateral forces Y1 Y2
+figure
+title("Lateral forces");
+% Front lateral force (Y1)
+subplot(1,2,1)
+plot(time, Y1, 'b')
+title("Front lateral force (Y1)")
+xlabel("[s]")
+ylabel("[N]")
+grid on
+hold off
+% Rear lateral force (Y2)
+subplot(1,2,2)
+plot(time, Y2, 'b')
+title("Rear lateral force (Y2)")
+xlabel("[s]")
+ylabel("[N]")
+grid on
+hold off
+
+%% Evaluating yaw moment N
+
+% Using single track model
+N = zeros(n,1);
+for i = 1:n
+    N(i) = d_omega_z_f(i)*Jzz(1);
+end
+
+% Plotting yaw moment
+figure
+plot(time, N, 'b')
+title("Yaw moment (N)");
+xlabel("[s]")
+ylabel("[Nm]")
+grid on
+hold off
+
+%% Power limited curve 
+% Plotting u vs ax
+figure
+dot_dim = 10;
+scatter(speed, ax, dot_dim, 'filled')
+title("Power limited curve");
+xlabel("vx [g]")
+ylabel("ax [g]")
+grid on
+hold off
+
+%% Grip limited curve
+Fy = Y1 + Y2;
+% Plotting u vs Fy
+figure
+scatter(speed, Fy, dot_dim, 'filled')
+title("Grip limited curve");
+xlabel("u [m/s]")
+ylabel("Fy [N]")
+grid on
+hold off
+
+%% gg plot
+% Plotting ax vs ay
+figure
+scatter(ax/g, ay/g, dot_dim, 'filled')
+title("g-g plot");
+xlabel("ax [g]")
+ylabel("ay [g]")
+grid on
+hold off
+
+%% Fixed certrodes
+
+R = speed./omega_z_f;
+S = -v ./omega_z_f;
+xc = zeros(n,1);
+yc = zeros(n,1);
+
+for i=1:n
+    if abs( R(i) ) < 30*abs( S(i) )
+        GC_v = [S(i); R(i)];
+        GC_f = [-cos( yaw(i) ) sin( yaw(i) ); -sin( yaw(i) ) -cos( yaw(i) )]*GC_v;
+        OC_f = GC_f + [xg(i); yg(i)];
+        xc(i) = OC_f(1);
+        yc(i) = OC_f(2);
+    end
+end
+
+% Finding curves
+n_s = 0;
+n_e = 0;
+j = 1;
+k = 1;
+
+if xc(1) ~= 0
+    n_s(j) = 1;
+    j = j + 1;
+else
+    for i=2:n
+        if (xc(i) ~= 0) && (xc(i-1) == 0)
+            n_s(j) = i;
+            j = j+1;
+        else if (xc(i) == 0) && (xc(i-1) ~= 0)
+                n_e(k) = i-1;
+                k = k+1;
+        end 
+        end
+    end
+end
+
+figure
+for j=1:size(n_s,2)
+    for i=n_s(j):n_e(j)
+        plot(xc(n_s(j):n_e(j)),yc(n_s(j):n_e(j)))
+        hold on
+        grid on
+    end
+end
+
+
+
+        
 
 
 
