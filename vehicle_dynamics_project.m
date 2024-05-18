@@ -407,7 +407,7 @@ else
     end
 end
 
-% Plotting curves and relative fixed centroeds
+% Plotting curves and relative fixed centrodes
 figure
 k = 1;
 for j=1:size(n_s,2)
@@ -417,15 +417,45 @@ for j=1:size(n_s,2)
         hold on
         plot(xg(n_s(j):n_e(j)), yg(n_s(j):n_e(j)), 'b')
         title(['Curve ' num2str(k)])
-        legend("Fixed centroed","Curve");
+        legend("Fixed centrode","Curve");
         grid on
         axis equal
         hold off
+        if k == 8
+            n_s_c8 = n_s(j);
+            n_e_c8 = n_e(j);
+        end
         k = k+1;
     end
 end
 
+%% Moving centrode
+n_c8 = (n_s_c8:1:n_e_c8)'; % Sample of curve 8
+n1= n_c8(1); 
+n2 = n_c8(floor(length(n_c8)/2));
+n3 = n_c8(end);
+n_c = [n1;n2;n3];
 
+xm = zeros( length(n_c8), 3);
+ym = zeros( length(n_c8), 3);
+for j=1:3
+    for i=1:length(n_c8)
+        xm(i,j) = xg(n_c(j)) - S( i + n1 - 1 )*cos( yaw( n_c(j) ) ) + R( i + n1 - 1 )*sin( yaw( n_c(j) ) );
+        ym(i,j) = yg(n_c(j)) - S( i + n1 - 1 )*sin( yaw( n_c(j) ) ) - R( i + n1 - 1 )*cos( yaw( n_c(j) ) );
+    end
+end
+
+% Plotting
+figure 
+plot(xg(n1:n3), yg(n1:n3))
+hold on
+plot(xc(n1:n3),yc(n1:n3),'LineWidth',2)
+plot(xm(:,1), ym(:,1), 'LineWidth',2)
+plot(xm(:,2), ym(:,2), 'LineWidth',2)
+plot(xm(:,3), ym(:,3), 'LineWidth',2)
+axis equal
+grid on
+hold off
 
         
 
