@@ -132,22 +132,22 @@ a2 = weight_dist(1)*passo_vettura(1);        % semipasso anteriore
 a1 = passo_vettura(1) - a2;                   % semipasso posteriore
 beta = zeros(n,1);
 
-v1 = zeros(n,1);
-v2 = zeros(n,1);
-v = zeros(n,1);
-
 % Forward integration
+v1_f = zeros(n,1);
+v2_f = zeros(n,1);
+v_f = zeros(n,1);
 xg_f = zeros(n,1);
 yg_f = zeros(n,1);
 yaw_f = zeros(n,1);
+
 for i=1:n-1
-    v1(i) = tan(beta1(i))*speed(i) - omega_z(i)*a1;
-    v2(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
+    v1_f(i) = tan(beta1(i))*speed(i) - omega_z(i)*a1;
+    v2_f(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
 
-    v(i) = 0.5*( v1(i) + v2(i) );
+    v_f(i) = 0.5*( v1_f(i) + v2_f(i) );
 
-    xg_f(i+1) = xg_f(i) - ( speed(i)*cos( yaw_f(i) ) - v(i)*sin( yaw_f(i) ) )*dt;
-    yg_f(i+1) = yg_f(i) - ( speed(i)*sin( yaw_f(i) ) + v(i)*cos( yaw_f(i) ) )*dt;
+    xg_f(i+1) = xg_f(i) - ( speed(i)*cos( yaw_f(i) ) - v_f(i)*sin( yaw_f(i) ) )*dt;
+    yg_f(i+1) = yg_f(i) - ( speed(i)*sin( yaw_f(i) ) + v_f(i)*cos( yaw_f(i) ) )*dt;
 
     yaw_f(i+1) = yaw_f(i) + 1/2*( omega_z(i+1) + omega_z(i) )*dt;
     yaw_f(i+1) = atan2( sin( yaw_f(i+1) ), cos( yaw_f(i+1) ) );
@@ -155,19 +155,22 @@ for i=1:n-1
 
 end
 
+% Backward integration
+v1_i = zeros(n,1);
+v2_i = zeros(n,1);
+v_i = zeros(n,1);
 xg_i = zeros(n,1);
 yg_i = zeros(n,1);
 yaw_i = zeros(n,1);
 
-% Backward integration
 for i=n:-1:2
-    v1(i) = tan(beta1(i))*speed(i) - omega_z(i)*a1;
-    v2(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
+    v1_i(i) = tan(beta1(i))*speed(i) - omega_z(i)*a1;
+    v2_i(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
 
-    v(i) = 0.5*( v1(i) + v2(i) );
+    v_i(i) = 0.5*( v1_i(i) + v2_i(i) );
 
-    xg_i(i-1) = xg_i(i) + ( speed(i)*cos( yaw_i(i) ) - v(i)*sin( yaw_i(i) ) )*dt;
-    yg_i(i-1) = yg_i(i) + ( speed(i)*sin( yaw_i(i) ) + v(i)*cos( yaw_i(i) ) )*dt;
+    xg_i(i-1) = xg_i(i) + ( speed(i)*cos( yaw_i(i) ) - v_i(i)*sin( yaw_i(i) ) )*dt;
+    yg_i(i-1) = yg_i(i) + ( speed(i)*sin( yaw_i(i) ) + v_i(i)*cos( yaw_i(i) ) )*dt;
 
     yaw_i(i-1) = yaw_i(i) - ( omega_z(i) )*dt;
     yaw_i(i-1) = atan2( sin( yaw_i(i-1) ), cos( yaw_i(i-1) ) );
@@ -179,11 +182,14 @@ end
 wf = linspace(1,0,n)';
 wi = linspace(0,1,n)';
 
+v = wf.*v_f + wi.*v_i;
 xg = wf.*xg_f + wi.*xg_i;
 yg = wf.*yg_f + wi.*yg_i;
 c_yaw = wf.*cos(yaw_f) + wi.*cos(yaw_i);
 s_yaw = wf.*sin(yaw_f) + wi.*sin(yaw_i);
 yaw = atan2(s_yaw, c_yaw);
+
+
 
 % Plotting cg trajectory
 figure
@@ -370,8 +376,12 @@ hold off
 
 %% Fixed certrodes
 
+v = smoothdata(v, "loess","SmoothingFactor",0.25);
+c_yaw = smoothdata(c_yaw, "loess","SmoothingFactor",0.25);
+s_yaw = smoothdata(s_yaw, "loess","SmoothingFactor",0.25);
+yaw = atan2(s_yaw, c_yaw);
 R = speed./omega_z_f;
-S = -v ./omega_z_f;
+S = -v./omega_z_f;
 xc = zeros(n,1);
 yc = zeros(n,1);
 

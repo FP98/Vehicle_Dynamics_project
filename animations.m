@@ -14,10 +14,10 @@ for j=1:length(n_c8)
     grid on;
     plot(xc(n1:n3), yc(n1:n3), 'LineWidth', 2);
     
-    % Plotta i nuovi dati per questa iterazione
     plot(xm(:,j), ym(:,j), 'LineWidth', 2);
+    plot(xg(j + n1 -1), yg(j + n1 -1), 'o', 'MarkerSize', 10, 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r');
     
     axis equal
     pause(dt);
-
 end
+hold off
