@@ -130,52 +130,47 @@ beta1 = sideslip_front;
 beta2 = sideslip_rear;
 a2 = weight_dist(1)*passo_vettura(1);        % semipasso anteriore
 a1 = passo_vettura(1) - a2;                   % semipasso posteriore
-yaw = zeros(n,1);
 beta = zeros(n,1);
 
 v1 = zeros(n,1);
 v2 = zeros(n,1);
 v = zeros(n,1);
 
-
-speed_s = [speed(1); zeros(n-1,1)];
-
-dist_s = 0;
-
+% Forward integration
 xg_f = zeros(n,1);
 yg_f = zeros(n,1);
-
+yaw_f = zeros(n,1);
 for i=1:n-1
-
-    % Computing v u beta
     v1(i) = tan(beta1(i))*speed(i) - omega_z(i)*a1;
     v2(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
 
     v(i) = 0.5*( v1(i) + v2(i) );
 
-    xg_f(i+1) = xg_f(i) - ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
-    yg_f(i+1) = yg_f(i) - ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
+    xg_f(i+1) = xg_f(i) - ( speed(i)*cos( yaw_f(i) ) - v(i)*sin( yaw_f(i) ) )*dt;
+    yg_f(i+1) = yg_f(i) - ( speed(i)*sin( yaw_f(i) ) + v(i)*cos( yaw_f(i) ) )*dt;
 
-    yaw(i+1) = yaw(i) + 1/2*( omega_z(i+1) + omega_z(i) )*dt;
-    yaw(i+1) = atan2( sin( yaw(i+1) ), cos( yaw(i+1) ) );
-    dist_s = dist_s + sqrt( ( xg_f(i+1) - xg_f(i) )^2 + ( yg_f(i+1) - yg_f(i) )^2 );
+    yaw_f(i+1) = yaw_f(i) + 1/2*( omega_z(i+1) + omega_z(i) )*dt;
+    yaw_f(i+1) = atan2( sin( yaw_f(i+1) ), cos( yaw_f(i+1) ) );
+    
 
 end
 
-xg_i = [zeros(n,1)];
-yg_i = [zeros(n,1)];
-yaw(end) = 0;
+xg_i = zeros(n,1);
+yg_i = zeros(n,1);
+yaw_i = zeros(n,1);
+
+% Backward integration
 for i=n:-1:2
     v1(i) = tan(beta1(i))*speed(i) - omega_z(i)*a1;
     v2(i) = tan(beta2(i))*speed(i) + omega_z(i)*a2;
 
     v(i) = 0.5*( v1(i) + v2(i) );
 
-    xg_i(i-1) = xg_i(i) + ( speed(i)*cos( yaw(i) ) - v(i)*sin( yaw(i) ) )*dt;
-    yg_i(i-1) = yg_i(i) + ( speed(i)*sin( yaw(i) ) + v(i)*cos( yaw(i) ) )*dt;
+    xg_i(i-1) = xg_i(i) + ( speed(i)*cos( yaw_i(i) ) - v(i)*sin( yaw_i(i) ) )*dt;
+    yg_i(i-1) = yg_i(i) + ( speed(i)*sin( yaw_i(i) ) + v(i)*cos( yaw_i(i) ) )*dt;
 
-    yaw(i-1) = yaw(i) - ( omega_z(i) )*dt;
-    yaw(i-1) = atan2( sin( yaw(i-1) ), cos( yaw(i-1) ) );
+    yaw_i(i-1) = yaw_i(i) - ( omega_z(i) )*dt;
+    yaw_i(i-1) = atan2( sin( yaw_i(i-1) ), cos( yaw_i(i-1) ) );
     
 end
 
@@ -186,11 +181,16 @@ wi = linspace(0,1,n)';
 
 xg = wf.*xg_f + wi.*xg_i;
 yg = wf.*yg_f + wi.*yg_i;
+c_yaw = wf.*cos(yaw_f) + wi.*cos(yaw_i);
+s_yaw = wf.*sin(yaw_f) + wi.*sin(yaw_i);
+yaw = atan2(s_yaw, c_yaw);
 
 % Plotting cg trajectory
 figure
 title("Center of mass trajectory");
 plot(xg, yg, 'b')
+hold on
+quiver(xg(1), yg(1), -100*cos( yaw(1) ), -100*sin( yaw(1) ), 'MaxHeadSize', 20, 'LineWidth', 2, 'Color', 'r');
 xlabel("[m]")
 ylabel("[m]")
 grid on
@@ -450,9 +450,9 @@ figure
 plot(xg(n1:n3), yg(n1:n3))
 hold on
 plot(xc(n1:n3),yc(n1:n3),'LineWidth',2)
-plot(xm(:,1), ym(:,1), 'LineWidth',2)
-plot(xm(:,2), ym(:,2), 'LineWidth',2)
-plot(xm(:,3), ym(:,3), 'LineWidth',2)
+for j=1:3
+    plot(xm(:,j), ym(:,j), 'LineWidth',2)
+end
 axis equal
 grid on
 hold off
