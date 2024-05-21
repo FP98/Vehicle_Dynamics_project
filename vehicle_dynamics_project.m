@@ -343,29 +343,84 @@ grid on
 hold off
 
 %% Power limited curve 
-% Plotting u vs ax
-figure
-dot_dim = 10;
-scatter(speed, ax, dot_dim, 'filled')
-title("Power limited curve");
-xlabel("vx [g]")
-ylabel("ax [g]")
+% Getting instant where pilot is accelerating
+farf = smoothdata(farf, "loess","SmoothingFactor",0.25);
+n_pl_s = 0;
+n_pl_e = 0;
+j = 1;
+k = 1;
+power_theshold = 89;
+if ( farf(1) >= power_theshold )
+    n_pl_s(j) = 1;
+    j = j + 1;
+end
+
+for i=2:n
+    if ( farf(i) >= power_theshold ) && ( farf(i-1) < power_theshold)
+        n_pl_s(j) = i;
+        j = j + 1;
+    else if ( farf(i) < power_theshold ) && ( farf(i-1) >= power_theshold)
+            n_pl_e(k) = i-1;
+            k = k + 1;
+    end
+    end
+end
+
+if farf(end) >= power_theshold
+    n_pl_e(k) = n;
+end
+
+% Plotting power limited curve
+figure 
+plot(xg, yg, 'b')
+hold on
+quiver(xg(1), yg(1), -100*cos( yaw(1) ), -100*sin( yaw(1) ), 'MaxHeadSize', 20, 'LineWidth', 2, 'Color', 'r');
+xlabel("[m]")
+ylabel("[m]")
 grid on
-hold off
+axis equal
+
+for i=1:length(n_pl_s)
+    plot( xg( n_pl_s(i):n_pl_e(i) ), yg( n_pl_s(i):n_pl_e(i) ), 'r', 'LineWidth', 2 );
+end
 
 %% Grip limited curve
-Fy = Y1 + Y2;
-% Plotting u vs Fy
-figure
-scatter(speed, Fy, dot_dim, 'filled')
-title("Grip limited curve");
-xlabel("u [m/s]")
-ylabel("Fy [N]")
-grid on
+n_gl_s = 0;
+n_gl_e = 0;
+j = 1;
+k = 1;
+if ( p_brake(1) >= 1.5 )
+    n_gl_s(j) = 1;
+    j = j + 1;
+end
+
+for i=2:n
+    if ( p_brake(i) > 1.5 ) && ( p_brake(i-1) <= 1.5)
+        n_gl_s(j) = i;
+        j = j + 1;
+    else if ( p_brake(i) <= 1.5 ) && ( p_brake(i-1) > 1.5)
+            n_gl_e(k) = i-1;
+            k = k + 1;
+    end
+    end
+end
+
+if p_brake(end) > 1.5
+    n_gl_e(k) = n;
+end
+
+% Plotting power limited curve
+for i=1:length(n_gl_s)
+    plot( xg( n_gl_s(i):n_gl_e(i) ), yg( n_gl_s(i):n_gl_e(i) ), 'g', 'LineWidth', 2 );
+end
+legend([plot( xg( n_pl_s(1):n_pl_e(1) ), yg( n_pl_s(1):n_pl_e(1) ), 'r', 'LineWidth', 2 ), ...
+    plot( xg( n_gl_s(1):n_gl_e(1) ), yg( n_gl_s(1):n_gl_e(1) ), 'g', 'LineWidth', 2 )...
+    ], "Power limited", "Grip limited");
 hold off
 
 %% gg plot
 % Plotting ax vs ay
+dot_dim = 10;
 figure
 scatter(ax/g, ay/g, dot_dim, 'filled')
 title("g-g plot");
