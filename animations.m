@@ -18,6 +18,6 @@ for j=1:length(n_c8)
     plot(xg(j + n1 -1), yg(j + n1 -1), 'o', 'MarkerSize', 10, 'MarkerEdgeColor', 'r', 'MarkerFaceColor', 'r');
     
     axis equal
-    pause(dt);
+    pause(0.00001);
 end
 hold off
