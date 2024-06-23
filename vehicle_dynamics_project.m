@@ -56,9 +56,7 @@ p_brake = p_brake*6894.76;
 
 % Plotting speed
 figure
-title("Speed");
 % longitudinal speed of car (u)
-subplot(1,2,1)
 plot(time, speed, 'b')
 title("Longitudinal speed of vehicle (u)")
 xlabel("[s]")
@@ -66,7 +64,7 @@ ylabel("[m/s]")
 grid on
 hold off
 % Relative speed of the air flow (Va)
-subplot(1,2,2)
+figure
 plot(time, airspeed, 'b')
 title("Relative speed of the airflow (V_a)")
 xlabel("[s]")
@@ -76,9 +74,7 @@ hold off
 
 % Plotting accelerations
 figure
-title("Acceleration");
 % Acceleration along the longitudinal axes of vehicle frame (ax)
-subplot(1,2,1)
 plot(time, ax, 'b')
 title("Longitudinal acceleration (a_x)")
 xlabel("[s]")
@@ -86,7 +82,7 @@ ylabel("[m/s^2]")
 grid on
 hold off
 % Acceleration along the lateral axes of vehicle frame (ax)
-subplot(1,2,2)
+figure
 plot(time, ay, 'b')
 title("Lateral acceleration (a_y)")
 xlabel("[s]")
@@ -96,9 +92,9 @@ hold off
 
 % Plotting angles
 figure
-title("Angles");
+
 % Front sideslip angle (alpha1)
-subplot(1,3,1)
+
 plot(time, sideslip_front, 'b')
 title("Front sideslip angle (\alpha_f)")
 xlabel("[s]")
@@ -106,7 +102,7 @@ ylabel("[rad]")
 grid on
 hold off
 % Rear sideslip angle (alpha2)
-subplot(1,3,2)
+figure
 plot(time, sideslip_rear, 'b')
 title("Rear sideslip angle (\alpha_r)")
 xlabel("[s]")
@@ -114,7 +110,7 @@ ylabel("[rad]")
 grid on
 hold off
 % Steer angle (\delta)
-subplot(1,3,3)
+figure
 plot(time, steer, 'b')
 title("Steer angle (\delta)")
 xlabel("[s]")
@@ -125,7 +121,7 @@ hold off
 % Plotting brake pressure and farf
 figure
 % p_brake
-subplot(1,2,1)
+
 plot(time, p_brake,'b')
 title("Pressure of the brakes")
 xlabel("[s]")
@@ -133,7 +129,7 @@ ylabel("[Pa x 10^5]")
 grid on
 hold off
 % farf
-subplot(1,2,2)
+figure
 plot(time, farf,'b')
 title("Opening of the motor valve")
 xlabel("[s]")
@@ -237,22 +233,20 @@ d_omega_z_f(n) = d_omega_z_f(n-1);
 
 % Plotting filtered and differentiated data
 figure
-title("\omega_z and d\omega_z");
 % Real vs Filtered omega_z
-subplot(1,2,1)
 plot(time, omega_z, 'r')
 hold on
 plot(time, omega_z_f, 'b','LineWidth',2)
-title("Real \omega_z vs filtered \omega_z")
+title("Real r vs filtered r")
 xlabel("[s]")
 ylabel("[rad/s]")
 legend("Real","Filtered");
 grid on
 hold off
 % Differentiated omega_z (d_omega_z)
-subplot(1,2,2)
+figure
 plot(time, d_omega_z_f, 'b')
-title("Differentiation of filtered \omega_z (d\omega_z)")
+title("Differentiation of filtered r ($\dot{r}$)", "Interpreter", "latex")
 xlabel("[s]")
 ylabel("[rad/s^2]")
 grid on
@@ -272,30 +266,23 @@ end
 
 % Plotting aerodynamics forces
 figure
-title("Aerodinamics forces");
 % Drag force (Xa)
-subplot(1,3,1)
 plot(time, Xa, 'b')
 title("Drag force (X_a)")
 xlabel("[s]")
 ylabel("[N]")
 grid on
 hold off
-% Front down force (Za1)
-subplot(1,3,2)
+% Front down force (Za1) & Rear down force (Za2)
+figure
 plot(time, Za1, 'b')
-title("Front down force (Z_a_1)")
+title("Front down force (Z_a_1) and rear down force (Z_a_2)")
 xlabel("[s]")
 ylabel("[N]")
 grid on
-hold off
-% Rear down force (Za2)
-subplot(1,3,3)
-plot(time, Za2, 'b')
-title("Rear down force (Z_a_2)")
-xlabel("[s]")
-ylabel("[N]")
-grid on
+hold on
+plot(time, Za2, 'r')
+legend("Front down force (Z_a_1)","Rear down force (Z_a_2)");
 hold off
 
 %% Physical grip estimation
@@ -361,9 +348,7 @@ end
 
 % Plotting lateral forces Y1 Y2
 figure
-title("Lateral forces");
 % Front lateral force (Y1)
-subplot(1,2,1)
 plot(time, Y1, 'b')
 hold on
 plot(time, Y1_d, 'r')
@@ -374,7 +359,7 @@ legend("Y1 single track model", "Y1 double track model")
 grid on
 hold off
 % Rear lateral force (Y2)
-subplot(1,2,2)
+figure
 plot(time, Y2, 'b')
 hold on
 plot(time, Y2_d, 'r')
@@ -499,6 +484,23 @@ for j=1:size(n_s,2)
         k = k+1;
     end
 end
+
+% Plotting curves and relative fixed centrodes on the circuit
+figure
+plot(xg, yg, 'b')
+hold on
+k = 1;
+for j=1:size(n_s,2)
+    if n_e(j) - n_s(j) > 50
+        plot(xc(n_s(j):n_e(j)),yc(n_s(j):n_e(j)), 'r', 'LineWidth',2)
+        plot(xg(n_s(j):n_e(j)), yg(n_s(j):n_e(j)), 'b','LineWidth',2)
+        grid on
+        axis equal
+       
+        k = k+1;
+    end
+end
+hold off
 
 %% Moving centrode
 n_c8 = (n_s_c8:1:n_e_c8)';          % Samples of curve 8
